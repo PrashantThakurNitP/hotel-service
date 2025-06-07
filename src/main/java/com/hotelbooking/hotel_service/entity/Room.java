@@ -1,12 +1,14 @@
 package com.hotelbooking.hotel_service.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 @Entity
 @Getter
@@ -26,7 +28,11 @@ public class Room {
 
     private String roomType;
     private BigDecimal price;
-    private Boolean available;
+
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<RoomAvailability> availabilities;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @PrePersist

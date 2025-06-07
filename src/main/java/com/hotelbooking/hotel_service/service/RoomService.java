@@ -33,7 +33,6 @@ public class RoomService {
                 .hotel(hotel)
                 .roomType(createRoomRequest.getRoomType())
                 .price(createRoomRequest.getPrice())
-                .available(createRoomRequest.getAvailable())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -52,7 +51,6 @@ public class RoomService {
         }
         room.setRoomType(roomRequest.getRoomType());
         room.setPrice(roomRequest.getPrice());
-        room.setAvailable(roomRequest.getAvailable());
 
         return roomRepository.save(room);
     }
