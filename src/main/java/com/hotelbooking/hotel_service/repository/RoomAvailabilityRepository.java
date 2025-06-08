@@ -10,8 +10,6 @@ import java.util.UUID;
 
 public interface RoomAvailabilityRepository extends JpaRepository<RoomAvailability, UUID> {
     @Query("SELECT ra FROM RoomAvailability ra WHERE ra.room.id = :roomId AND ra.booked = true AND " +
-            "((:checkIn BETWEEN ra.checkIn AND ra.checkOut) OR " +
-            "(:checkOut BETWEEN ra.checkIn AND ra.checkOut) OR " +
-            "(ra.checkIn BETWEEN :checkIn AND :checkOut))")
+            ":checkIn < ra.checkOut AND :checkOut > ra.checkIn")
     List<RoomAvailability> findConflicts(UUID roomId, LocalDate checkIn, LocalDate checkOut);
 }

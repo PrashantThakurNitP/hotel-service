@@ -21,18 +21,26 @@ public class BookingEventListener {
     @KafkaListener(topics = "booking-events", groupId = "hotel-service")
     public void handleBookingCreated(BookingEvent event) {
         log.info("Received booking event: {}", event);
-
-        if (!"PENDING".equalsIgnoreCase(event.getStatus())) {
-            log.info("Skipping non-pending event: {}", event.getStatus());
+        if (event.getStatus() == null) {
+            log.warn("Received booking event with null status: {}", event);
             return;
         }
+        String status = event.getStatus() != null ? event.getStatus().toUpperCase() : "";
 
+        switch (status) {
+            case "PENDING" -> handlePending(event);
+            case "CANCELLED" -> handleCancelled(event);
+            default -> log.info("Skipping Invalid event: {}", event.getStatus());
+        }
+
+    }
+
+    private void handlePending(BookingEvent event) {
         UUID roomId = event.getRoomId();
         LocalDate checkIn = event.getCheckIn();
         LocalDate checkOut = event.getCheckOut();
 
         boolean available = roomAvailabilityService.isAvailable(roomId, checkIn, checkOut);
-
 
 
         String finalStatus;
@@ -42,7 +50,7 @@ public class BookingEventListener {
             log.info("Room {} marked as unavailable", roomId);
         } else {
             finalStatus = "REJECTED";
-            log.info("Room {} unavailable or not found", event.getRoomId());
+            log.warn("Room {} is unavailable between {} and {}", roomId, checkIn, checkOut);
         }
 
         BookingEvent confirmationEvent = event.toBuilder()
@@ -50,6 +58,16 @@ public class BookingEventListener {
                 .build();
 
         eventProducer.send(confirmationEvent);
+    }
+    private void handleCancelled(BookingEvent event) {
+        log.info("Handling cancellation for booking: {}", event.getBookingId());
+
+        roomAvailabilityService.cancelReservation(
+                event.getRoomId(),
+                event.getCheckIn(),
+                event.getCheckOut()
+        );
+        log.info("Cancelled reservation for room {} from {} to {}", event.getRoomId(), event.getCheckIn(), event.getCheckOut());
     }
 
 }
