@@ -1,7 +1,9 @@
 package com.hotelbooking.hotel_service.service;
 
+import com.hotelbooking.common.event.HotelEvent;
 import com.hotelbooking.hotel_service.dto.CreateHotelRequest;
 import com.hotelbooking.hotel_service.entity.Hotel;
+import com.hotelbooking.hotel_service.kafka.SearchIndexEventProducer;
 import com.hotelbooking.hotel_service.repository.HotelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class HotelService {
     private final HotelRepository hotelRepository;
+    private final SearchIndexEventProducer searchIndexEventProducer;
 
     public Hotel createHotel(CreateHotelRequest createHotelRequest){
         Hotel hotel = Hotel.builder()
@@ -23,7 +26,18 @@ public class HotelService {
                 .description(createHotelRequest.getDescription())
                 .rating(createHotelRequest.getRating())
                 .build();
-        return hotelRepository.save(hotel);
+
+        Hotel hotelResponse =  hotelRepository.save(hotel);
+        searchIndexEventProducer.publishHotelEvent(mapToHotelEvent(hotel));
+        return hotelResponse;
+    }
+
+    public HotelEvent mapToHotelEvent(Hotel hotelDocument) {
+        return new HotelEvent(
+                hotelDocument.getId(),
+                hotelDocument.getName(),
+                hotelDocument.getCity()
+        );
     }
 
     public Optional<Hotel> getHotelById(UUID id){
@@ -41,6 +55,7 @@ public class HotelService {
             hotel.setAddress(updateHotel.getAddress());
             hotel.setDescription(updateHotel.getDescription());
             hotel.setRating(updateHotel.getRating());
+            searchIndexEventProducer.publishHotelEvent(mapToHotelEvent(hotel));
             return hotelRepository.save(hotel);
         }).orElseThrow(()->new RuntimeException("Hotel Not Found"));
     }

@@ -1,15 +1,16 @@
 package com.hotelbooking.hotel_service.service;
 
+import com.hotelbooking.common.event.RoomEvent;
 import com.hotelbooking.hotel_service.dto.CreateRoomRequest;
 import com.hotelbooking.hotel_service.entity.Hotel;
 import com.hotelbooking.hotel_service.entity.Room;
+import com.hotelbooking.hotel_service.kafka.SearchIndexEventProducer;
 import com.hotelbooking.hotel_service.repository.HotelRepository;
 import com.hotelbooking.hotel_service.repository.RoomRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
+    private final SearchIndexEventProducer searchIndexEventProducer;
 
     public  List<Room> getRoomByHotelId(UUID hotelId){
        return roomRepository.findByHotelId(hotelId);
@@ -36,8 +38,16 @@ public class RoomService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        return roomRepository.save(room);
+        Room roomResponse = roomRepository.save(room);
+        searchIndexEventProducer.publishRoomEvent(mapToRoomEvent(room));
+        return roomResponse;
     }
+
+    private RoomEvent mapToRoomEvent(Room room) {
+        return new RoomEvent(room.getId(), room.getRoomType(), room.getPrice());
+    }
+
+
     public Room getRoomById(UUID id){
        return roomRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Room Not Found"));
     }
@@ -51,7 +61,7 @@ public class RoomService {
         }
         room.setRoomType(roomRequest.getRoomType());
         room.setPrice(roomRequest.getPrice());
-
+        searchIndexEventProducer.publishRoomEvent(mapToRoomEvent(room));
         return roomRepository.save(room);
     }
 }
