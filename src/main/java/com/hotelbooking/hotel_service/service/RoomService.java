@@ -39,12 +39,12 @@ public class RoomService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         Room roomResponse = roomRepository.save(room);
-        searchIndexEventProducer.publishRoomEvent(mapToRoomEvent(room));
+        searchIndexEventProducer.publishRoomEvent(mapToRoomEvent(hotelId, room));
         return roomResponse;
     }
 
-    private RoomEvent mapToRoomEvent(Room room) {
-        return new RoomEvent(room.getId(), room.getRoomType(), room.getPrice());
+    private RoomEvent mapToRoomEvent(UUID hotelId, Room room) {
+        return new RoomEvent(hotelId, room.getId(), room.getRoomType(), room.getPrice());
     }
 
 
@@ -61,7 +61,7 @@ public class RoomService {
         }
         room.setRoomType(roomRequest.getRoomType());
         room.setPrice(roomRequest.getPrice());
-        searchIndexEventProducer.publishRoomEvent(mapToRoomEvent(room));
+        searchIndexEventProducer.publishRoomEvent(mapToRoomEvent(hotelId, room));
         return roomRepository.save(room);
     }
 }
