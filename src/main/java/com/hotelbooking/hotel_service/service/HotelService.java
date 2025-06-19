@@ -36,7 +36,8 @@ public class HotelService {
         return new HotelEvent(
                 hotelDocument.getId(),
                 hotelDocument.getName(),
-                hotelDocument.getCity()
+                hotelDocument.getCity(),
+                hotelDocument.getRating()
         );
     }
 
