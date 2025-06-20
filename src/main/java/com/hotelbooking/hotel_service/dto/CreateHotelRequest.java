@@ -1,18 +1,17 @@
 package com.hotelbooking.hotel_service.dto;
 
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
 public class CreateHotelRequest {
 
     @NotBlank(message = "Hotel name is required")
+    @Size(min = 2, max = 50, message = "City name must be between 2 and 50 characters")
     private String name;
 
     @NotBlank(message = "City is required")
+    @Size(min = 2, max = 50, message = "Hotel name  must be between 2 and 50 characters")
     private String city;
 
     @NotBlank(message = "Address is required")

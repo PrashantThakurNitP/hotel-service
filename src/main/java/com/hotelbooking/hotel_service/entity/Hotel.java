@@ -2,6 +2,9 @@ package com.hotelbooking.hotel_service.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -21,9 +24,14 @@ public class Hotel {
     private UUID id;
 
     private String name;
+
+
     private String city;
+
     private String address;
+
     private String description;
+
     private Double rating;
 
     private LocalDateTime createdAt;
