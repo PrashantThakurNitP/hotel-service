@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -38,7 +40,9 @@ public class RoomController {
             @ApiResponse(responseCode = "400", description = "Invalid room data")
     })
     @PostMapping("/hotel/{hotelId}")
-    public ResponseEntity<Room> createRoom(@PathVariable UUID hotelId, @Valid @RequestBody CreateRoomRequest request){
+    @PreAuthorize("hasRole('HOTEL_OWNER') or hasRole('ADMIN')")
+    public ResponseEntity<Room> createRoom(@PathVariable UUID hotelId, @Valid @RequestBody CreateRoomRequest request , @AuthenticationPrincipal String userId){
+        request.setOwnerId((UUID.fromString(userId)));
         return ResponseEntity.ok(roomService.createRoom(hotelId, request));
     }
 
@@ -59,7 +63,9 @@ public class RoomController {
             @ApiResponse(responseCode = "404", description = "Room or Hotel not found")
     })
     @PutMapping("/{roomId}")
-    public ResponseEntity<Room> updateRoom(@PathVariable UUID roomId, @RequestHeader UUID hotelId, @Valid @RequestBody CreateRoomRequest request){
+    @PreAuthorize("hasRole('HOTEL_OWNER') or hasRole('ADMIN')")
+    public ResponseEntity<Room> updateRoom(@PathVariable UUID roomId, @RequestHeader UUID hotelId, @Valid @RequestBody CreateRoomRequest request , @AuthenticationPrincipal String userId){
+        request.setOwnerId((UUID.fromString(userId)));
         return ResponseEntity.ok(roomService.updateRoom(roomId, hotelId, request));
     }
 

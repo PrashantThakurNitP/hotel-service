@@ -10,7 +10,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.UUID;
 @RequestMapping("/api/hotels")
 @Tag(name = "Hotel Controller", description = "APIs for managing hotels")
 @RequiredArgsConstructor
+@Slf4j
 public class HotelController {
     private final HotelService hotelService;
 
@@ -29,8 +33,11 @@ public class HotelController {
             @ApiResponse(responseCode = "200", description = "Hotel created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request data")
     })
+    @PreAuthorize("hasRole('HOTEL_OWNER') or hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Hotel> createHotel(@Valid @RequestBody CreateHotelRequest createHotelRequest){
+    public ResponseEntity<Hotel> createHotel(@Valid @RequestBody CreateHotelRequest createHotelRequest, @AuthenticationPrincipal String userId){
+        log.info("Request to create hotel {} for owner {}", createHotelRequest.getName(), userId);
+        createHotelRequest.setOwnerId((UUID.fromString(userId)));
         return ResponseEntity.ok(hotelService.createHotel(createHotelRequest));
     }
 
@@ -61,7 +68,9 @@ public class HotelController {
             @ApiResponse(responseCode = "404", description = "Hotel not found")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Hotel> updateHotel(@PathVariable UUID id, @Valid @RequestBody CreateHotelRequest request) {
+    @PreAuthorize("hasRole('HOTEL_OWNER') or hasRole('ADMIN')")
+    public ResponseEntity<Hotel> updateHotel(@PathVariable UUID id, @Valid @RequestBody CreateHotelRequest request, @AuthenticationPrincipal String userId) {
+        request.setOwnerId((UUID.fromString(userId)));
         return ResponseEntity.ok(hotelService.updateHotel(id, request));
     }
 }

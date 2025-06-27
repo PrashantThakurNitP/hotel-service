@@ -6,6 +6,7 @@ import com.hotelbooking.hotel_service.entity.Hotel;
 import com.hotelbooking.hotel_service.kafka.SearchIndexEventProducer;
 import com.hotelbooking.hotel_service.repository.HotelRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class HotelService {
                 .address(createHotelRequest.getAddress())
                 .description(createHotelRequest.getDescription())
                 .rating(createHotelRequest.getRating())
+                .ownerId(createHotelRequest.getOwnerId())
                 .build();
 
         Hotel hotelResponse =  hotelRepository.save(hotel);
@@ -51,6 +53,10 @@ public class HotelService {
 
     public Hotel updateHotel(UUID id, CreateHotelRequest updateHotel){
        return hotelRepository.findById(id).map(hotel -> {
+
+            if(updateHotel.getOwnerId()!= null && hotel.getOwnerId()!=null  && !updateHotel.getOwnerId().equals(hotel.getOwnerId())){
+                   throw  new AccessDeniedException("You cannot modify this hotel");
+            }
             hotel.setName(updateHotel.getName());
             hotel.setCity(updateHotel.getCity());
             hotel.setAddress(updateHotel.getAddress());

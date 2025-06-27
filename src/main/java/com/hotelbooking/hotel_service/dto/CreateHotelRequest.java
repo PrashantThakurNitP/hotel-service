@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 @Schema(description = "Request object for creating or updating a hotel")
 public class CreateHotelRequest {
@@ -31,4 +33,6 @@ public class CreateHotelRequest {
     @DecimalMax(value = "5.0", inclusive = true, message = "Rating must not exceed 5.0")
     @Schema(description = "Average rating of the hotel (0.0 to 5.0)", example = "4.5")
     private Double rating;
+
+    private UUID ownerId; // This stores the hotel owner's user ID
 }

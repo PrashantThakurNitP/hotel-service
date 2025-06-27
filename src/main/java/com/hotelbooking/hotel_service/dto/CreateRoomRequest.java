@@ -27,4 +27,6 @@ public class CreateRoomRequest {
     @NotNull(message = "Availability is required")
     @Schema(description = "Availability status of the room", example = "true")
     private Boolean available;
+
+    private UUID ownerId; // This contains the room owner's user ID
 }

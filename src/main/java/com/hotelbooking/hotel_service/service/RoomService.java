@@ -9,6 +9,7 @@ import com.hotelbooking.hotel_service.repository.HotelRepository;
 import com.hotelbooking.hotel_service.repository.RoomRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,10 @@ public class RoomService {
     public Room createRoom(UUID hotelId, CreateRoomRequest createRoomRequest){
         Hotel hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new EntityNotFoundException("Hotel not found"));
+
+        if(createRoomRequest.getOwnerId()!= null && hotel.getOwnerId()!=null  && !createRoomRequest.getOwnerId().equals(hotel.getOwnerId())){
+            throw  new AccessDeniedException("You cannot add room in this hotel");
+        }
 
         Room room = Room.builder()
                 .hotel(hotel)
@@ -56,6 +61,9 @@ public class RoomService {
         Room room = getRoomById(roomId);
         Hotel hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(()->new EntityNotFoundException("Hotel Not Found"));
+        if(roomRequest.getOwnerId()!= null && hotel.getOwnerId()!=null  && !roomRequest.getOwnerId().equals(hotel.getOwnerId())){
+            throw  new AccessDeniedException("You cannot modify room in this hotel");
+        }
         if(!room.getHotel().getId().equals(hotel.getId())){
             throw new EntityNotFoundException("Room don't exist in Hotel");
         }

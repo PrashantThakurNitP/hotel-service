@@ -34,6 +34,8 @@ public class Hotel {
 
     private Double rating;
 
+    private UUID ownerId; // This stores the hotel owner's user ID
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
